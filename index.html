@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>日本 2026 秋 · 行程地图</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="2026-09-25 至 10-06 日本行程互动地图：大阪・神户・奈良・京都・富山・立山黑部・姬路・高野山">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   Design System — edit :root to change theme
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-primary:    #ffffff;
+  --bg-secondary:  #f5f5f7;
+  --bg-tertiary:   #fbfbfd;
+  --bg-grouped:    #f2f2f7;
+  --bg-elevated:   #ffffff;
+  --text-primary:   #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary:  #aeaeb2;
+  --accent:        #0071e3;
+  --accent-hover:  #0077ed;
+  --tint-red:    #ff3b30;
+  --tint-orange: #ff9500;
+  --tint-green:  #34c759;
+  --tint-blue:   #007aff;
+  --tint-purple: #af52de;
+  --tint-pink:   #ff2d55;
+  --separator:  rgba(60, 60, 67, .12);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 14px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 30px rgba(0,0,0,.12);
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+               "Helvetica Neue", "Arial", sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.47059;
+  letter-spacing: -0.022em;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Map ── */
+#map { width: 100%; height: 40vh; min-height: 280px; position: sticky; top: 0; z-index: 100; }
+.locate-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border: none; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.locate-btn.active { color: #007aff; }
+@keyframes loc-pulse {
+  0%   { transform: scale(1); opacity: .55; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.loc-pulse {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(0,122,255,.25);
+  animation: loc-pulse 1.6s ease-out infinite;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: rgba(255,255,255,.85); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px); position: sticky; top: 40vh; z-index: 99;
+  border-bottom: .5px solid var(--separator); scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 7px 16px; border-radius: 980px; border: none;
+  background: var(--bg-grouped); color: var(--text-secondary);
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all .25s ease;
+  white-space: nowrap; letter-spacing: -0.01em;
+}
+.tab:active { transform: scale(.96); }
+.tab.active { background: var(--accent); color: #fff; }
+
+/* ── Main content ── */
+.content { max-width: 680px; margin: 0 auto; padding: 16px 16px calc(24px + var(--safe-bottom)); }
+
+/* ── Overview ── */
+.hero { text-align: center; padding: 28px 20px 20px; }
+.hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.hero .subtitle { font-size: 17px; color: var(--text-secondary); margin-top: 6px; font-weight: 400; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.info-card { background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.info-card .label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .02em; margin-bottom: 6px; }
+.info-card .value { font-size: 15px; font-weight: 600; line-height: 1.4; }
+
+/* ── Section headers ── */
+.section-head { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; padding: 20px 0 8px; }
+
+/* ── Day header ── */
+.day-head { padding: 20px 0 12px; }
+.day-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.day-head p { font-size: 15px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── Route bar ── */
+.route-bar { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; box-shadow: var(--shadow-sm); font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-line; }
+.route-bar strong { color: var(--text-primary); }
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 20px; width: 1.5px; background: var(--separator); }
+.tl-item { position: relative; margin-bottom: 10px; }
+.tl-dot { position: absolute; left: -20px; top: 18px; width: 10px; height: 10px; border-radius: 50%; z-index: 1; box-shadow: 0 0 0 3px var(--bg-secondary); }
+.tl-dot.food    { background: var(--tint-red); }
+.tl-dot.spot    { background: var(--tint-blue); }
+.tl-dot.hotel   { background: var(--tint-orange); }
+.tl-dot.drink   { background: var(--tint-purple); }
+.tl-dot.transport { background: var(--text-tertiary); }
+
+/* ── Card ── */
+.card { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); transition: box-shadow .25s ease; cursor: pointer; }
+.card:active { box-shadow: var(--shadow-md); }
+.card .time { font-size: 12px; font-weight: 600; color: var(--text-tertiary); letter-spacing: .01em; }
+.card .name { font-size: 17px; font-weight: 600; margin: 2px 0 4px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+.card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.45; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+.badge.food   { background: rgba(255,59,48,.1);  color: var(--tint-red); }
+.badge.spot   { background: rgba(0,122,255,.1);  color: var(--tint-blue); }
+.badge.drink  { background: rgba(175,82,222,.1); color: var(--tint-purple); }
+
+/* Budget */
+.budget { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--bg-grouped); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+/* Payment */
+.pays { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.pay { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+.pay.ok  { background: rgba(52,199,89,.1);  color: var(--tint-green); }
+.pay.no  { background: rgba(255,59,48,.08); color: var(--tint-red); }
+.pay.idk { background: rgba(255,149,0,.1);  color: var(--tint-orange); }
+
+/* Links row */
+.links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+  text-decoration: none !important; transition: filter .2s;
+}
+.btn:active { filter: brightness(.9); }
+.btn.nav    { background: var(--accent); color: #fff; }
+.btn.xhs    { background: #ff2442; color: #fff; }
+.btn.dp     { background: #ffa700; color: #fff; }
+.btn.rsv    { background: var(--tint-green); color: #fff; }
+
+/* Action Sheet */
+.as-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.as-overlay.show { opacity: 1; pointer-events: auto; }
+.as-sheet {
+  width: 100%; max-width: 420px;
+  padding: 0 8px 34px;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.as-overlay.show .as-sheet { transform: translateY(0); }
+.as-group {
+  background: rgba(255,255,255,.88); backdrop-filter: blur(20px);
+  border-radius: 14px; overflow: hidden; margin-bottom: 8px;
+}
+.as-group .as-item {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px; font-size: 18px; color: #007aff; font-weight: 500;
+  border: none; background: none; width: 100%; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.as-group .as-item + .as-item { border-top: .5px solid rgba(0,0,0,.12); }
+.as-group .as-item:active { background: rgba(0,0,0,.06); }
+.as-cancel { font-weight: 600; }
+
+/* Details — default open */
+.details {
+  margin-top: 10px; padding-top: 10px;
+  border-top: .5px solid var(--separator);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+.details.closed { display: none; }
+
+/* ── Overview day list ── */
+.day-list .card { margin-bottom: 8px; }
+.day-list .card .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+/* ── Payment summary ── */
+.pay-summary { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+.pay-summary h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.pay-summary .warn { color: var(--tint-red); }
+.pay-summary .ok-text { color: var(--tint-green); }
+
+/* ── Legend ── */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--text-secondary); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── Leaflet overrides ── */
+.leaflet-popup-content-wrapper { border-radius: var(--radius-md) !important; box-shadow: var(--shadow-lg) !important; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important; }
+.leaflet-popup-content { font-size: 14px !important; line-height: 1.5 !important; margin: 12px 14px !important; }
+.leaflet-popup-content a { color: var(--accent) !important; }
+.leaflet-popup-tip { background: #fff !important; }
+.leaflet-control-zoom a { width: 34px !important; height: 34px !important; line-height: 34px !important; font-size: 16px !important; border-radius: 10px !important; background: rgba(255,255,255,.85) !important; -webkit-backdrop-filter: blur(10px) !important; backdrop-filter: blur(10px) !important; border: .5px solid var(--separator) !important; color: var(--text-primary) !important; }
+.leaflet-control-zoom { border-radius: 12px !important; overflow: hidden; box-shadow: var(--shadow-md) !important; border: none !important; }
+.leaflet-control-attribution { font-size: 9px !important; opacity: .5; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  REPLACE THIS SECTION — Hotel and Days data                 ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const HOTEL = {
+  "name": "APA Hotel & Resort 大阪难波站前塔",
+  "lat": 34.6604,
+  "lng": 135.5021
+};
+
+const DAYS = [
+  {
+    "id": 0,
+    "label": "总览",
+    "color": "#0071e3",
+    "locations": []
+  },
+  {
+    "id": 1,
+    "label": "9/25",
+    "date": "2026-09-25 周五",
+    "title": "香港 → 福冈 → 关西 → 难波",
+    "color": "#0071e3",
+    "route": "硬节点：航班计划 22:15 落地 KIX T2。当晚只做一件事——进难波、入住、睡觉。",
+    "locations": [
+      {
+        "name": "香港国际机场 T2",
+        "lat": 22.3126,
+        "lng": 113.9173,
+        "type": "transport",
+        "time": "10:55",
+        "desc": "香港 → 福冈起飞。国际航段，提前 3 小时到柜台。",
+        "gmap": "Hong Kong International Airport Terminal 2",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0
+        },
+        "budget": "国际机票"
+      },
+      {
+        "name": "福冈机场 T1",
+        "lat": 33.5868,
+        "lng": 130.4474,
+        "type": "transport",
+        "time": "15:20",
+        "desc": "FUK 落地。中转 5 小时 40 分，够用但别去市区。",
+        "gmap": "Fukuoka Airport",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0
+        },
+        "detail": "行李大概率要提取后重新托运，先到柜台确认。\nT1 到 D 航站楼/区域需要换乘和重新安检。\n国内线航站楼与 D 区域不是同一个地方，留出 40 分钟以上缓冲。"
+      },
+      {
+        "name": "关西国际机场 T2",
+        "lat": 34.4261,
+        "lng": 135.2786,
+        "type": "transport",
+        "time": "22:15",
+        "desc": "航班落地。入境、取行李、T2 到铁路接驳。",
+        "gmap": "Kansai International Airport Terminal 2",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0
+        },
+        "detail": "不要把 22:35 的 Rapi:t 当计划车次——那只是理想值。\n现实目标是落地后还能赶上的南海机场急行。\n若入境排队或接驳拖久，直接打车或预约接送，不要在机场奔跑追车。"
+      },
+      {
+        "name": "南海难波站",
+        "lat": 34.664,
+        "lng": 135.5013,
+        "type": "transport",
+        "time": "约 23:40",
+        "desc": "南海机场急行抵达难波，出站步行到 APA。",
+        "gmap": "Nankai Namba Station Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "APA Hotel & Resort 大阪难波站前塔",
+        "lat": 34.6604,
+        "lng": 135.5021,
+        "type": "hotel",
+        "time": "约 23:55",
+        "desc": "9/25–9/29 住 4 晚。落地当晚只到酒店。",
+        "gmap": "APA Hotel Resort Osaka Namba Ekimae Tower",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "大阪市浪速区难波中 2-11-50。\n今晚只允许在酒店附近便利店买水、早餐和第二天用品。\n不要去道顿堀或心斋桥——明天开始连续移动，第一晚的休息价值更高。",
+        "xhsKeyword": "APA酒店 难波站前塔"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "label": "9/26",
+    "date": "2026-09-26 周六",
+    "title": "神户一日游",
+    "color": "#ff9500",
+    "route": "北野 → 神户牛午餐 → 南京町 → 旧居留地（压缩）→ 美利坚公园 → Harborland 日落亮灯 → 难波\n删减顺序：先删旧居留地，再压缩南京町；神户牛和港口日落不要删。",
+    "locations": [
+      {
+        "name": "难波站 出发",
+        "lat": 34.664,
+        "lng": 135.5013,
+        "type": "transport",
+        "time": "07:45",
+        "desc": "优先阪神难波线直达三宫，避免在梅田换乘。",
+        "gmap": "Nankai Namba Station Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "北野异人馆街",
+        "lat": 34.701,
+        "lng": 135.1913,
+        "type": "spot",
+        "time": "09:00",
+        "desc": "只选 1–2 个代表馆舍，别贪多。",
+        "gmap": "Kitano Ijinkan Kobe",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "馆舍单馆约 ¥700–1,000",
+        "xhsKeyword": "北野异人馆"
+      },
+      {
+        "name": "神户牛午餐（三宫）",
+        "lat": 34.6946,
+        "lng": 135.1952,
+        "type": "food",
+        "time": "11:00",
+        "desc": "铁板烧神户牛。尽量提前预约，这顿是当天主线之一。",
+        "gmap": "Sannomiya Kobe beef teppanyaki",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "¥6,000–12,000/人",
+        "detail": "午餐时段（11:00–12:45）比晚餐便宜，套餐也更划算。\n三宫一带铁板烧店密集，订位时确认是否含税和服务费。",
+        "xhsKeyword": "神户牛 三宫"
+      },
+      {
+        "name": "南京町（中华街）",
+        "lat": 34.6881,
+        "lng": 135.1884,
+        "type": "spot",
+        "time": "12:45",
+        "desc": "走到就好，为港口日落留时间，不要在这吃太饱。",
+        "gmap": "Nankinmachi Kobe",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "神户南京町"
+      },
+      {
+        "name": "旧居留地",
+        "lat": 34.6896,
+        "lng": 135.1906,
+        "type": "spot",
+        "time": "14:00",
+        "desc": "以老建筑外观和拍照为主，体力不够第一顺位删掉。",
+        "gmap": "Kobe Kyukyoryuchi",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "神户旧居留地"
+      },
+      {
+        "name": "美利坚公园",
+        "lat": 34.6833,
+        "lng": 135.1893,
+        "type": "spot",
+        "time": "16:00",
+        "desc": "神户港塔和海边的黄金时段，日落前到。",
+        "gmap": "Meriken Park Kobe",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "神户美利坚公园"
+      },
+      {
+        "name": "Harborland / umie",
+        "lat": 34.6798,
+        "lng": 135.1833,
+        "type": "food",
+        "time": "17:30",
+        "desc": "夕阳、蓝调、亮灯连看，晚餐直接在这解决。",
+        "gmap": "Kobe Harborland umie",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "¥1,500–3,000/人",
+        "detail": "不要再为了「神户晚餐」另跑到远处，这里就是终点。\n吃完 19:15 后返回难波。",
+        "xhsKeyword": "神户Harborland"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "label": "9/27",
+    "date": "2026-09-27 周日",
+    "title": "奈良一日游",
+    "color": "#34c759",
+    "route": "东大寺＋奈良公园 → 春日大社 → 午餐 → 奈良町（压缩）→ 若草山（15:20 前到登山口）→ 大阪\n删减顺序：先删若草山，再压缩奈良町；东大寺和春日大社保留。",
+    "locations": [
+      {
+        "name": "近铁奈良站",
+        "lat": 34.6842,
+        "lng": 135.8275,
+        "type": "transport",
+        "time": "约 08:45",
+        "desc": "从难波出发。若行李仍未寄出，今天上午必须完成寄送。",
+        "gmap": "Kintetsu Nara Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "东大寺 + 奈良公园",
+        "lat": 34.6875,
+        "lng": 135.8398,
+        "type": "spot",
+        "time": "09:00",
+        "desc": "南大门→大佛殿。鹿饼留一部分到春日大社参道。",
+        "gmap": "Todai-ji Nara",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "大佛殿 ¥800",
+        "xhsKeyword": "奈良东大寺"
+      },
+      {
+        "name": "春日大社参道",
+        "lat": 34.6805,
+        "lng": 135.8461,
+        "type": "spot",
+        "time": "10:45",
+        "desc": "石灯笼参道，慢慢走。",
+        "gmap": "Kasuga Taisha Nara",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "本殿前 ¥500",
+        "xhsKeyword": "奈良春日大社"
+      },
+      {
+        "name": "午餐（奈良町方向）",
+        "lat": 34.68,
+        "lng": 135.835,
+        "type": "food",
+        "time": "12:15",
+        "desc": "往奈良町方向吃，省一次折返。",
+        "gmap": "Naramachi Nara lunch",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,200–2,500/人",
+        "detail": "柿叶寿司、釜饭是奈良本地选项。\n若后面要去若草山，这顿吃轻一点。",
+        "xhsKeyword": "奈良午餐"
+      },
+      {
+        "name": "奈良町",
+        "lat": 34.6784,
+        "lng": 135.8371,
+        "type": "spot",
+        "time": "13:30",
+        "desc": "压缩版：咖啡、伴手礼或一小段老街。",
+        "gmap": "Naramachi Nara",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "奈良町"
+      },
+      {
+        "name": "若草山",
+        "lat": 34.6912,
+        "lng": 135.8543,
+        "type": "spot",
+        "time": "15:20",
+        "desc": "仅在当天开放且体力足够时执行。15:20 前必须到登山口。",
+        "gmap": "Mount Wakakusa Nara",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "budget": "¥150 入山",
+        "detail": "这是当天第一顺位可删项。\n若体力不足或天气差，直接跳过，回大阪休息。",
+        "xhsKeyword": "奈良若草山"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "label": "9/28",
+    "date": "2026-09-28 周一",
+    "title": "USJ 全天",
+    "color": "#ff2d55",
+    "route": "开园前 60 分钟到 → 开园冲任天堂/哈利波特 → 11:00 提前午餐 → 下午普通项目 → 15:00–15:30 最热鬼屋 → 17:00–19:30 避峰 → 20:00 后回补鬼屋\n闭园时间以当日官方为准，不要按 22:00 当固定目标。",
+    "locations": [
+      {
+        "name": "难波站 出发",
+        "lat": 34.664,
+        "lng": 135.5013,
+        "type": "transport",
+        "time": "约 07:00",
+        "desc": "06:30 前起床、简单早餐。环状线到环球城。",
+        "gmap": "Nankai Namba Station Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "日本环球影城（大门）",
+        "lat": 34.6656,
+        "lng": 135.4325,
+        "type": "spot",
+        "time": "08:00",
+        "desc": "开园前约 60 分钟到园区门口。",
+        "gmap": "Universal Studios Japan",
+        "pay": {
+          "cash": 0,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "¥8,900–10,400 一日券",
+        "detail": "开园–11:00 优先冲 Nintendo World、Mario Kart、哈利波特禁忌之旅。\n11:00–12:00 提前吃午餐，避开最挤时段。\n15:00–15:30 转场最热鬼屋；17:00–19:30 避开鬼屋主峰吃饭看演出；20:00 后回补鬼屋。\n预算允许的话，Express Pass 按高峰日必需品考虑，优先买含目标鬼屋的版本。",
+        "xhsKeyword": "日本环球影城 攻略"
+      },
+      {
+        "name": "超级任天堂世界",
+        "lat": 34.6686,
+        "lng": 135.4301,
+        "type": "spot",
+        "time": "08:30",
+        "desc": "开园第一顺位。需要整理券或 Express 才能进。",
+        "gmap": "Super Nintendo World Universal Studios Japan",
+        "pay": {
+          "cash": 0,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "开园直冲最快，中午后人流明显上升。\n马里奥赛车是排队最久的项目，先玩它。",
+        "xhsKeyword": "USJ 任天堂世界"
+      },
+      {
+        "name": "哈利波特魔法世界",
+        "lat": 34.6642,
+        "lng": 135.431,
+        "type": "spot",
+        "time": "09:30",
+        "desc": "禁忌之旅 + 鹰马飞行，和任天堂二选一先冲。",
+        "gmap": "Wizarding World of Harry Potter Universal Studios Japan",
+        "pay": {
+          "cash": 0,
+          "card": 1,
+          "suica": 0.5
+        },
+        "xhsKeyword": "USJ 哈利波特"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "label": "9/29",
+    "date": "2026-09-29 周二",
+    "title": "京都东山 + 换住梅小路花伝抄",
+    "color": "#af52de",
+    "route": "伏见稻荷 → 清水寺 → 三年坂/二年坂 → 八坂/祇园 → 南禅寺＋天授庵 → 永观堂（可选）→ 祇园/鸭川晚餐 → 梅小路花伝抄\n删减顺序：永观堂 → 天授庵 → 缩短祇园；伏见稻荷早段、清水寺和二三年坂不要删。",
+    "locations": [
+      {
+        "name": "京都站（行李寄存）",
+        "lat": 34.9866,
+        "lng": 135.7585,
+        "type": "transport",
+        "time": "07:00",
+        "desc": "先把行李处理掉，不要把大箱子拖上伏见稻荷。",
+        "gmap": "Kyoto Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "方案：京都站寄存柜、酒店提前寄存，或按花伝抄确认的方式处理。"
+      },
+      {
+        "name": "伏见稻荷大社",
+        "lat": 34.9671,
+        "lng": 135.7727,
+        "type": "spot",
+        "time": "07:30",
+        "desc": "只走主殿和前段千本鸟居，不登山顶。",
+        "gmap": "Fushimi Inari Taisha",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "伏见稻荷大社"
+      },
+      {
+        "name": "清水寺 + 清水坂",
+        "lat": 34.9943,
+        "lng": 135.7844,
+        "type": "spot",
+        "time": "09:45",
+        "desc": "从车站到寺门还要步行 20–30 分钟，算进去。",
+        "gmap": "Kiyomizu-dera Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥500",
+        "xhsKeyword": "京都清水寺"
+      },
+      {
+        "name": "三年坂・二年坂（含午餐）",
+        "lat": 34.9965,
+        "lng": 135.7813,
+        "type": "spot",
+        "time": "11:15",
+        "desc": "石板路下坡段，边走边解决午餐。",
+        "gmap": "Sannenzaka Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,500–3,000/人",
+        "xhsKeyword": "三年坂 二年坂"
+      },
+      {
+        "name": "八坂神社・祇园",
+        "lat": 35.0036,
+        "lng": 135.7783,
+        "type": "spot",
+        "time": "12:45",
+        "desc": "八坂神社、圆山公园到祇园一条线。",
+        "gmap": "Yasaka Shrine Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "八坂神社 祇园"
+      },
+      {
+        "name": "南禅寺 + 天授庵",
+        "lat": 35.0115,
+        "lng": 135.7927,
+        "type": "spot",
+        "time": "14:45",
+        "desc": "水路阁和方丈庭院，这一区比祇园安静很多。",
+        "gmap": "Nanzen-ji Temple Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "南禅寺免费・方丈 ¥600",
+        "xhsKeyword": "南禅寺 天授庵"
+      },
+      {
+        "name": "永观堂（可选）",
+        "lat": 35.014,
+        "lng": 135.795,
+        "type": "spot",
+        "time": "—",
+        "desc": "只在时间和体力都够时加。当天第一顺位可删项。",
+        "gmap": "Eikan-do Zenrin-ji Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥600",
+        "xhsKeyword": "永观堂"
+      },
+      {
+        "name": "祇园・鸭川晚餐",
+        "lat": 35.0042,
+        "lng": 135.7712,
+        "type": "food",
+        "time": "18:00",
+        "desc": "四条大桥/先斗町一带，晚餐后回梅小路。",
+        "gmap": "Pontocho Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "¥3,000–6,000/人",
+        "detail": "回花伝抄优先出租车。\n若坐公交＋JR，必须提前确认末班和换乘；酒店不在祇园步行圈内。",
+        "xhsKeyword": "祇园 鸭川 晚餐"
+      },
+      {
+        "name": "京都梅小路花伝抄",
+        "lat": 34.9883,
+        "lng": 135.7402,
+        "type": "hotel",
+        "time": "约 20:30",
+        "desc": "9/29–9/30 住 1 晚。温泉/私汤，京都站换乘一站到梅小路京都西。",
+        "gmap": "Kyoto Umekoji Kadensho",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "京都市下京区朱雀内畑町 41-10。\nJR 梅小路京都西站步行约 2 分钟，官方写 2 分钟、实测 2–3 分钟，没有酒店巴士。\n祇园返程是弱项，晚上建议打车。\n入住当晚先向酒店确认 9/30 行李处理方式。",
+        "xhsKeyword": "京都梅小路花伝抄"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "label": "9/30",
+    "date": "2026-09-30 周三",
+    "title": "岚山 → 小火车 → 富山",
+    "color": "#ff3b30",
+    "route": "硬节点：13:02 トロッコ嵯峨发车。渡月桥 → 竹林 → 天龙寺 → 10:30 前离开核心区 → 10:30–11:15 午餐 → 11:45–12:00 到トロッコ嵯峨站\n不要把 12:30 当目标，也不要依赖 1 分钟极限换乘。",
+    "locations": [
+      {
+        "name": "梅小路京都西站 出发",
+        "lat": 34.9885,
+        "lng": 135.7432,
+        "type": "transport",
+        "time": "07:20",
+        "desc": "JR 山阴线（嵯峨野线）到嵯峨岚山。",
+        "gmap": "Umekoji-Kyotonishi Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "渡月桥",
+        "lat": 35.0129,
+        "lng": 135.6778,
+        "type": "spot",
+        "time": "08:00",
+        "desc": "早上人少，是拍桥最好的时段。",
+        "gmap": "Togetsukyo Bridge Arashiyama",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "xhsKeyword": "岚山渡月桥"
+      },
+      {
+        "name": "竹林小径",
+        "lat": 35.0167,
+        "lng": 135.6711,
+        "type": "spot",
+        "time": "08:30",
+        "desc": "8 点多还能拍到空镜头，9 点后开始挤。",
+        "gmap": "Arashiyama Bamboo Grove",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "xhsKeyword": "岚山竹林"
+      },
+      {
+        "name": "天龙寺",
+        "lat": 35.0162,
+        "lng": 135.6729,
+        "type": "spot",
+        "time": "08:45",
+        "desc": "之后不要再加小寺，时间要留给小火车。",
+        "gmap": "Tenryu-ji Temple Arashiyama",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "庭园 ¥500",
+        "xhsKeyword": "岚山天龙寺"
+      },
+      {
+        "name": "岚山午餐",
+        "lat": 35.0151,
+        "lng": 135.6752,
+        "type": "food",
+        "time": "10:30",
+        "desc": "快速解决，不需要吃完整正式午餐。",
+        "gmap": "Saga Tenryuji Susukinobaba Kyoto",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,500–3,000/人",
+        "detail": "目标是 11:15–11:30 开始向トロッコ嵯峨站移动。",
+        "xhsKeyword": "岚山 午餐"
+      },
+      {
+        "name": "トロッコ嵯峨站",
+        "lat": 35.0186,
+        "lng": 135.6807,
+        "type": "transport",
+        "time": "11:45",
+        "desc": "目标 11:45–12:00 到站，13:02 发车。",
+        "gmap": "Torokko Saga Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "detail": "选座可优先 5 号或部分 6 号车厢，避免车厢最两端可能有固定窗的位置。\n从 JR 嵯峨岚山极限转乘的备案：下车前先打开电子票二维码 → 上楼出站 → 左转往トロッコ嵯峨南口 → 下楼梯后右转进站。这只是迟到备案，不是正常计划。",
+        "xhsKeyword": "岚山小火车"
+      },
+      {
+        "name": "トロッコ亀冈站",
+        "lat": 35.0131,
+        "lng": 135.6068,
+        "type": "transport",
+        "time": "约 13:30",
+        "desc": "下车后步行到 JR 马堀站。",
+        "gmap": "Torokko Kameoka Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 0.5,
+          "suica": 0.5
+        }
+      },
+      {
+        "name": "JR 马堀站",
+        "lat": 35.0107,
+        "lng": 135.6022,
+        "type": "transport",
+        "time": "13:45",
+        "desc": "JR 返回京都站。",
+        "gmap": "Umahori Station Kyoto",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "京都站",
+        "lat": 34.9866,
+        "lng": 135.7585,
+        "type": "transport",
+        "time": "14:40",
+        "desc": "换乘：京都 → 敦贺，再转北陆新干线。",
+        "gmap": "Kyoto Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "JR 长途车票待办：比较北陆・关西チケットレス早特7与普通票，但不要为了折扣牺牲小火车后的换乘缓冲。"
+      },
+      {
+        "name": "敦贺站",
+        "lat": 35.645,
+        "lng": 136.0755,
+        "type": "transport",
+        "time": "约 16:30",
+        "desc": "北陆新干线转乘点。",
+        "gmap": "Tsuruga Station Fukui",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "富山站",
+        "lat": 36.701,
+        "lng": 137.213,
+        "type": "transport",
+        "time": "约 18:40",
+        "desc": "出站步行到 Hotel LiveMax Toyama。",
+        "gmap": "Toyama Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "Hotel LiveMax Toyama",
+        "lat": 36.6974,
+        "lng": 137.2148,
+        "type": "hotel",
+        "time": "约 19:00",
+        "desc": "9/30–10/3 住 3 晚。到店第一件事：确认提前寄来的厚衣服已到。",
+        "gmap": "Hotel Livemax Toyama",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "富山县富山市新樱町 5-2，富山站南口步行约 3–4 分钟。\n大阪寄出的立山厚衣服最晚要今晚拿到；如果没到，立刻用追踪号码查件，并启动随身备选衣物方案。",
+        "xhsKeyword": "富山 住宿"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "label": "10/1-2",
+    "date": "2026-10-01 周四 – 10-02 周五",
+    "title": "立山黑部 / 富山市 天气互换",
+    "color": "#00b3b3",
+    "route": "出发前一晚看立山・室堂当地天气，不要只看富山市区。晴天能见度高：上山（方案 A）；大雨强风低能见度：富山市（方案 B）。\n已购票：10/1 07:40 早割 WEB きっぷ、10/2 08:00 Standard WEB きっぷ，两张同时保留作天气保险。",
+    "locations": [
+      {
+        "name": "Hotel LiveMax Toyama 出发",
+        "lat": 36.6974,
+        "lng": 137.2148,
+        "type": "hotel",
+        "time": "06:00",
+        "desc": "立山日需 06:00–06:50 出发，富山地铁到立山约 1 小时。",
+        "gmap": "Hotel Livemax Toyama",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        }
+      },
+      {
+        "name": "立山站（富山地铁）",
+        "lat": 36.5834,
+        "lng": 137.4455,
+        "type": "transport",
+        "time": "07:40 / 08:00",
+        "desc": "入山预约是硬约束。10/1 早割 07:40、10/2 Standard 08:00。",
+        "gmap": "Tateyama Station Toyama",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "detail": "10/1 早割 WEB きっぷ：9/21 23:59 前免费取消，9/22 起每人 1,000 日元。\n10/2 Standard WEB きっぷ：10/1 15:00 前免费取消，之后每人 500 日元。\n确定上山日期后：用 10/1 就取消 10/2，用 10/2 就取消 10/1。\n以 WEB きっぷ账户页面显示的取消截止时间为最终依据。",
+        "xhsKeyword": "立山黑部"
+      },
+      {
+        "name": "美女平",
+        "lat": 36.5833,
+        "lng": 137.4586,
+        "type": "spot",
+        "time": "08:05",
+        "desc": "缆车上来的第一站，看立山杉巨木。",
+        "gmap": "Bijodaira Tateyama",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        }
+      },
+      {
+        "name": "室堂",
+        "lat": 36.5772,
+        "lng": 137.5958,
+        "type": "spot",
+        "time": "09:00",
+        "desc": "当天最优先保留点，时间落后也不要压缩这里。",
+        "gmap": "Murodo Tateyama",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "detail": "10 月初不是雪之大谷季节，重点放在高山地貌、初秋植被和室堂平。\n山上气温低、风大，厚衣服就是为这里准备的。",
+        "xhsKeyword": "立山黑部 室堂"
+      },
+      {
+        "name": "大观峰",
+        "lat": 36.5696,
+        "lng": 137.6318,
+        "type": "spot",
+        "time": "11:30",
+        "desc": "无柱缆车换乘点，展望台看黑部湖。",
+        "gmap": "Daikanbo Tateyama",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        }
+      },
+      {
+        "name": "黑部平",
+        "lat": 36.567,
+        "lng": 137.6498,
+        "type": "spot",
+        "time": "12:00",
+        "desc": "休息和观景节点。时间紧张时压缩这里，不要压缩室堂。",
+        "gmap": "Kurobeko Tateyama",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        }
+      },
+      {
+        "name": "黑部湖・黑部水坝",
+        "lat": 36.5666,
+        "lng": 137.6636,
+        "type": "spot",
+        "time": "13:00",
+        "desc": "路线终点，往返票到 Kurobeko 为止。",
+        "gmap": "Kurobe Dam",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "budget": "往返票已购",
+        "detail": "时间落后时，先压缩黑部大坝停留，不要先压缩室堂。\n山上基本没有 ATM，带足现金。",
+        "xhsKeyword": "黑部大坝"
+      },
+      {
+        "name": "富山市玻璃美术馆",
+        "lat": 36.6883,
+        "lng": 137.2149,
+        "type": "spot",
+        "time": "—",
+        "desc": "方案 B（富山市恢复日）：TOYAMAキラリ，雨天首选。",
+        "gmap": "Toyama Glass Art Museum",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "¥1,000 常设展",
+        "xhsKeyword": "富山市玻璃美术馆"
+      },
+      {
+        "name": "富岩运河环水公园",
+        "lat": 36.7097,
+        "lng": 137.2123,
+        "type": "spot",
+        "time": "—",
+        "desc": "方案 B：环水公园、富岩运河区域，不加远距离景点。",
+        "gmap": "Toyama Kansui Park",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "xhsKeyword": "富岩运河环水公园"
+      },
+      {
+        "name": "Starbucks 富山环水公园店",
+        "lat": 36.7092,
+        "lng": 137.2135,
+        "type": "drink",
+        "time": "—",
+        "desc": "方案 B：只在顺路时去，公认拍照点。",
+        "gmap": "Starbucks Toyama Kansui Park",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0.5
+        },
+        "budget": "约 ¥600",
+        "xhsKeyword": "富山环水公园星巴克"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "label": "10/3",
+    "date": "2026-10-03 周六",
+    "title": "富山 → 大阪新今宫",
+    "color": "#8e8e93",
+    "route": "恢复日，不加硬景点。富山 → 敦贺（北陆新干线）→ 大阪（Thunderbird）→ 新今宫（大阪环状线）\n16:00–20:00 才考虑轻松去难波/道顿堀；累透了就只在新今宫附近吃饭。",
+    "locations": [
+      {
+        "name": "Hotel LiveMax Toyama 退房",
+        "lat": 36.6974,
+        "lng": 137.2148,
+        "type": "hotel",
+        "time": "10:00 前",
+        "desc": "退房前再确认一次没有东西落下。",
+        "gmap": "Hotel Livemax Toyama",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        }
+      },
+      {
+        "name": "富山站",
+        "lat": 36.701,
+        "lng": 137.213,
+        "type": "transport",
+        "time": "约 10:30",
+        "desc": "北陆新干线 → 敦贺。",
+        "gmap": "Toyama Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "敦贺站",
+        "lat": 35.645,
+        "lng": 136.0755,
+        "type": "transport",
+        "time": "约 11:45",
+        "desc": "换乘 Thunderbird 前往大阪。",
+        "gmap": "Tsuruga Station Fukui",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "大阪站",
+        "lat": 34.7015,
+        "lng": 135.4944,
+        "type": "transport",
+        "time": "约 13:40",
+        "desc": "大阪环状线 → 新今宫。",
+        "gmap": "Osaka Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "CHISUN STANDARD 大阪新今宫",
+        "lat": 34.6497,
+        "lng": 135.5015,
+        "type": "hotel",
+        "time": "约 14:10",
+        "desc": "10/3–10/6 住 3 晚。先寄存行李、吃饭和休息。",
+        "gmap": "Chisun Standard Osaka Shin Imamiya",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "大阪市西成区萩之茶屋 1-2-13，步行到南海新今宫约 1–3 分钟。\n注意：南海新今宫 ≠ JR 新今宫，两个站在不同位置，10/5 晚上先踩点南海检票口。",
+        "xhsKeyword": "大阪新今宫 住宿"
+      },
+      {
+        "name": "道顿堀・难波（可选）",
+        "lat": 34.669,
+        "lng": 135.5016,
+        "type": "spot",
+        "time": "16:00",
+        "desc": "只有体力还行才去；不去也完全符合计划。",
+        "gmap": "Dotonbori Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "xhsKeyword": "道顿堀"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "label": "10/4",
+    "date": "2026-10-04 周日",
+    "title": "姬路城 + 好古园",
+    "color": "#ff9f0a",
+    "route": "08:00 JR 新今宫出发 → 09:00 前进入姬路城 → 10:30 移动 → 11:00 活水轩/好古园餐厅取号 → 午餐＋好古园 → 14:30 回姬路站 → 17:00 左右回到大阪",
+    "locations": [
+      {
+        "name": "JR 新今宫站",
+        "lat": 34.6498,
+        "lng": 135.5022,
+        "type": "transport",
+        "time": "08:00",
+        "desc": "经大阪或天王寺转 JR 神户线新快速。",
+        "gmap": "Shin-Imamiya Station Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "姬路城",
+        "lat": 34.8393,
+        "lng": 134.694,
+        "type": "spot",
+        "time": "09:00",
+        "desc": "重点是天守阁和西之丸。",
+        "gmap": "Himeji Castle",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,000（与好古园联票 ¥1,050）",
+        "detail": "姬路城和好古园分开检票，联票更划算。\n天守阁需要脱鞋，楼梯较陡，内部比外观更耗体力，预留体力。",
+        "xhsKeyword": "姬路城"
+      },
+      {
+        "name": "好古园",
+        "lat": 34.8371,
+        "lng": 134.6904,
+        "type": "spot",
+        "time": "10:30",
+        "desc": "池泉回游式庭园，和活水轩同一片区。",
+        "gmap": "Koko-en Garden Himeji",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥310",
+        "xhsKeyword": "好古园"
+      },
+      {
+        "name": "活水轩（先取号）",
+        "lat": 34.8381,
+        "lng": 134.6904,
+        "type": "food",
+        "time": "11:00",
+        "desc": "先取号再游园，按叫号回来。等位可能 60–80 分钟。",
+        "gmap": "Kassui-ken Himeji",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0
+        },
+        "budget": "¥2,000–4,000/人",
+        "detail": "关键动作：11:00 左右先到活水轩或好古园餐厅取号，不要吃完午饭才第一次去现场。\n如果等位 60–80 分钟，先拿号，再去好古园游园，按叫号回来。\n若队伍异常长，宁可放弃窗边位置，也不要影响返回大阪的时间。",
+        "xhsKeyword": "姬路 好古园 活水轩"
+      },
+      {
+        "name": "姬路站",
+        "lat": 34.8269,
+        "lng": 134.6902,
+        "type": "transport",
+        "time": "14:30",
+        "desc": "返回大阪，17:00 左右回到新今宫。",
+        "gmap": "Himeji Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "label": "10/5",
+    "date": "2026-10-05 周一",
+    "title": "高野山一日游",
+    "color": "#30b0c7",
+    "route": "07:00–07:30 南海新今宫出发，目标 10:00 前上山。南海新今宫 → 桥本（同站台换乘）→ 极乐桥 → 缆车 → 山上巴士\n金刚峯寺＋坛上伽蓝 → 午餐 → 奥之院 → 15:00–15:30 开始返程",
+    "locations": [
+      {
+        "name": "南海新今宫站",
+        "lat": 34.6501,
+        "lng": 135.5002,
+        "type": "transport",
+        "time": "07:00",
+        "desc": "注意是南海新今宫，不是 JR 新今宫。",
+        "gmap": "Nankai Shin-Imamiya Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "高野山普通南海列车不必提前买票；若改坐特急 Koya，需另买特急券。\n桥本为同站台换乘，不用出站。"
+      },
+      {
+        "name": "桥本站（同站台换乘）",
+        "lat": 34.3184,
+        "lng": 135.6146,
+        "type": "transport",
+        "time": "约 08:30",
+        "desc": "南海高野线换乘点，同站台。",
+        "gmap": "Hashimoto Station Wakayama",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "极乐桥站",
+        "lat": 34.234,
+        "lng": 135.5823,
+        "type": "transport",
+        "time": "约 09:20",
+        "desc": "换缆车，缆车段约 5 分钟。",
+        "gmap": "Gokurakubashi Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        }
+      },
+      {
+        "name": "高野山站",
+        "lat": 34.2277,
+        "lng": 135.5773,
+        "type": "transport",
+        "time": "约 09:40",
+        "desc": "缆车下来后必须坐山上巴士，不能步行上山。",
+        "gmap": "Koyasan Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "budget": "山上巴士 ¥300–600"
+      },
+      {
+        "name": "金刚峯寺",
+        "lat": 34.2139,
+        "lng": 135.5837,
+        "type": "spot",
+        "time": "10:00",
+        "desc": "高野山真言宗总本山，看蟠龙庭。",
+        "gmap": "Kongobu-ji Koyasan",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,000",
+        "xhsKeyword": "高野山 金刚峯寺"
+      },
+      {
+        "name": "坛上伽蓝",
+        "lat": 34.2134,
+        "lng": 135.58,
+        "type": "spot",
+        "time": "11:15",
+        "desc": "根本大塔、金堂，高野山的信仰中心。",
+        "gmap": "Danjo Garan Koyasan",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "根本大塔 ¥500",
+        "xhsKeyword": "高野山 坛上伽蓝"
+      },
+      {
+        "name": "午餐（高野山）",
+        "lat": 34.2145,
+        "lng": 135.585,
+        "type": "food",
+        "time": "12:00",
+        "desc": "精进料理或山上简餐，选离下一站近的。",
+        "gmap": "Koyasan restaurant",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0
+        },
+        "budget": "¥1,500–4,000/人",
+        "detail": "精进料理建议提前预约；临时找店要留出等位时间。",
+        "xhsKeyword": "高野山 精进料理"
+      },
+      {
+        "name": "奥之院（一之桥参道）",
+        "lat": 34.2135,
+        "lng": 135.5953,
+        "type": "spot",
+        "time": "13:00",
+        "desc": "从一之桥参道入口步行至御庙约 2 公里，杉林墓域。",
+        "gmap": "Okunoin Koyasan",
+        "pay": {
+          "cash": 1,
+          "card": 0,
+          "suica": 0
+        },
+        "detail": "15:00–15:30 开始返程，回程巴士可从坛上伽蓝附近乘坐。\n注意山上巴士末班时间，不要卡太死。",
+        "xhsKeyword": "高野山 奥之院"
+      },
+      {
+        "name": "近江八幡・八幡堀（备选）",
+        "lat": 35.1396,
+        "lng": 136.0881,
+        "type": "spot",
+        "time": "—",
+        "desc": "只在山间天气差或连续早起体力透支时启用。JR 前往，逛八幡堀后返回。",
+        "gmap": "Hachimanbori Omihachiman",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "detail": "不要再叠加和歌山电铁、熊野古道等远程项目。",
+        "xhsKeyword": "近江八幡 八幡堀"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "label": "10/6",
+    "date": "2026-10-06 周二",
+    "title": "返程",
+    "color": "#5856d6",
+    "route": "硬节点：KIX T2 10:10 起飞。04:55–05:00 出发 → 步行 1–3 分钟到南海新今宫 → 约 05:17 空港急行 → 计划 05:58 到 KIX → 目标 07:10 前到值机区\n当天不要安排任何其他事项。",
+    "locations": [
+      {
+        "name": "CHISUN STANDARD 大阪新今宫 出发",
+        "lat": 34.6497,
+        "lng": 135.5015,
+        "type": "hotel",
+        "time": "04:55",
+        "desc": "04:55–05:00 离开酒店。",
+        "gmap": "Chisun Standard Osaka Shin Imamiya",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "出发前把护照、钱包、电子设备、充电器、免税品、随身液体再点一遍。"
+      },
+      {
+        "name": "南海新今宫站",
+        "lat": 34.6501,
+        "lng": 135.5002,
+        "type": "transport",
+        "time": "约 05:10",
+        "desc": "步行 1–3 分钟。约 05:17 乘空港急行。",
+        "gmap": "Nankai Shin-Imamiya Station",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "后续还有约 05:28、05:45、06:00 等班次，但必须核对 2026 年官方时刻表。"
+      },
+      {
+        "name": "关西国际机场 T2",
+        "lat": 34.4261,
+        "lng": 135.2786,
+        "type": "transport",
+        "time": "计划 05:58",
+        "desc": "目标 07:10 前到值机区，满足提前 3 小时建议。",
+        "gmap": "Kansai International Airport Terminal 2",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0.5
+        },
+        "detail": "10:10–11:30 KIX T2 → FUK D。\n预留 T2 接驳、安检和值机柜台开放时间的缓冲。"
+      },
+      {
+        "name": "福冈机场（转国际航站楼）",
+        "lat": 33.5868,
+        "lng": 130.4474,
+        "type": "transport",
+        "time": "11:30",
+        "desc": "确认行李和航站楼转换。",
+        "gmap": "Fukuoka Airport",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 0
+        },
+        "detail": "福冈机场国内与国际航站楼之间要坐接驳巴士，留足时间。"
+      },
+      {
+        "name": "香港国际机场 T1",
+        "lat": 22.3126,
+        "lng": 113.9173,
+        "type": "transport",
+        "time": "19:00",
+        "desc": "16:15–19:00 FUK → HKG T1 抵港。该航线准点率约 74%。",
+        "gmap": "Hong Kong International Airport",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 0
+        }
+      }
+    ]
+  }
+];
+
+// ╚══════════════════════════════════════════════════════════════╝
+
+function overviewContent() {
+  return `
+<div class="hero"><h1>日本 2026 秋</h1><p class="subtitle">9/25 – 10/6 · 大阪・神户・奈良・京都・富山・立山黑部・姬路・高野山</p></div>
+<div class="info-grid">
+  <div class="info-card"><div class="label">出发 / 返回</div><div class="value">香港 HKG T2<br>10/6 19:00 抵港</div></div>
+  <div class="info-card"><div class="label">航线</div><div class="value">去程 香港 → 福冈 → 关西<br>回程 关西 → 福冈 → 香港</div></div>
+  <div class="info-card"><div class="label">住宿 4 段</div><div class="value">难波 APA 4 晚<br>梅小路花伝抄 1 晚<br>富山 LiveMax 3 晚<br>新今宫 CHISUN 3 晚</div></div>
+  <div class="info-card"><div class="label">交通主力</div><div class="value">IC 卡（Suica / ICOCA）<br>+ JR 长途票</div></div>
+</div>
+
+<div class="section-head">四个硬节点</div>
+<div class="pay-summary"><h4>1. 9/30 13:02 トロッコ嵯峨发车</h4>岚山当天最高优先级。目标 11:45–12:00 到站，不要把 12:30 当目标。</div>
+<div class="pay-summary"><h4>2. 立山黑部两张票的取消节点</h4>10/1 早割：<span class="warn">9/21 23:59 后取消每人 1,000 日元</span>。<br>10/2 Standard：<span class="warn">10/1 15:00 前免费取消</span>，之后每人 500 日元。<br>两张同时保留，就是为了给 10/1–10/2 的天气决策留余地。以账户页面显示的截止时间为最终依据。</div>
+<div class="pay-summary"><h4>3. 10/6 KIX T2 10:10 起飞</h4>04:55 出发，05:17 空港急行，05:58 到 KIX，目标 07:10 前到值机区。</div>
+<div class="pay-summary"><h4>4. 立山厚衣服必须在 9/30 晚间到手</h4>9/26 或 9/27 上午从大阪寄到 Hotel LiveMax Toyama，指定送达 9/29–9/30。9/30 到店第一件事就是确认取件。</div>
+
+<div class="section-head">行李寄送（立山厚衣服）</div>
+<div class="pay-summary">寄件时间：<strong>9/26 周六早上或晚上</strong>优先，最晚 9/27 周日上午。<br>寄件地点：难波附近 Yamato 营业所、便利店或 APA 前台。<br>收件人：Hotel LiveMax Toyama + 订房姓名，备注入住日期 2026-09-30。<br>寄送内容：保暖内层、抓绒或轻薄羽绒、防风防水外层、手套、帽子、厚袜子。<br><span class="warn">护照、现金、银行卡、药品、电脑、相机、充电器、电池、移动电源一律随身，不要寄。</span><br>寄送前确认：APA 是否能代办宅急便 / LiveMax 是否接受未入住前到件 / 运费与追踪方式。只寄一个箱子，寄送单拍照留存。</div>
+
+<div class="section-head">支付与现金</div>
+<div class="pay-summary"><h4>IC 卡是主力</h4>地铁、私铁、巴士、便利店、多数连锁餐饮都可用 Suica / ICOCA。iPhone 可直接加交通卡。<br><span class="ok-text">神户、奈良、USJ、京都市内、姬路普通列车</span>原则上现场刷 IC 卡即可，不必提前买票。</div>
+<div class="pay-summary"><h4>需要现金的地方</h4>寺庙神社的朱印、小规模店铺、部分庭园和山上巴士。好古园/活水轩、姬路城门票建议备现金。<br><span class="warn">立山黑部山上没有 ATM</span>，上山前在富山市区取足现金。</div>
+<div class="pay-summary"><h4>取现</h4>7-11 和日本邮政的 ATM 对境外卡最友好。备少量现金应对只收现金的老店。</div>
+
+<div class="section-head">周游券复核</div>
+<div class="pay-summary">暂不默认购买 Kansai-Hokuriku Area Pass（约 19,000 日元/人）。<br>在购买 9/30 京都→富山、10/3 富山→大阪两段长途票时，再按实际价格和通票做一次最终核算。<br>JR 长途票优先比较北陆・关西チケットレス早特7与普通票，但<span class="warn">不要为了折扣牺牲 9/30 小火车后的换乘缓冲</span>。</div>
+
+<div class="section-head">行程概览</div>
+<div class="day-list">${DAYS.slice(1).map(d=>`<div class="card" onclick="go(${d.id})"><div class="name"><span class="dot" style="background:${d.color}"></span>${d.label} · ${d.title}</div><div class="desc">${d.date}</div></div>`).join('')}</div>
+
+<div class="section-head">这是一份参考行程</div>
+<div class="pay-summary">它不是必须照做的脚本。旅行中天气、当下位置、疲劳和饥饿都可以推翻它。<br>每天的「删减顺序」就是给你现场做决定用的：按顺序砍，先砍排在前面<br>的，保住标为硬节点的部分。</div>
+
+<div class="section-head">出发前最后检查</div>
+<div class="pay-summary">1. 福冈 T1 / D 航站楼转换，行李是否需要重新托运。<br>2. 南海电铁新今宫早班时刻表、KIX T2 接驳和值机柜台开放时间。<br>3. APA 寄件、LiveMax 代收、宅急便指定送达日期和追踪号码。<br>4. 9/30 小火车票、二维码和座位；立山黑部入山预约。<br>5. USJ 9/28 开园时间、鬼屋阵容和 Express Pass。<br>6. 好古园/活水轩营业与取号规则、姬路城排队情况。<br>7. 高野山缆车、山上巴士班次；若草山是否开放及最后入场时间。</div>
+
+<div class="section-head">图例</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-red)"></div>餐厅</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-blue)"></div>景点</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-purple)"></div>饮品</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-orange)"></div>酒店</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-tertiary)"></div>交通</div>
+</div>`;
+}
+
+// ║  ENGINE — Do not modify below unless customizing behavior   ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const map = L.map('map', { center: [HOTEL.lat || 35.69, HOTEL.lng || 139.74], zoom: 12, zoomControl: false, attributionControl: true });
+L.control.zoom({ position: 'topright' }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+/* ── Geolocation ── */
+const LocateControl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd() {
+    const btn = L.DomUtil.create('button', 'locate-btn');
+    btn.innerHTML = '📍';
+    btn.title = '我的位置';
+    L.DomEvent.disableClickPropagation(btn);
+    btn.addEventListener('click', () => {
+      btn.classList.add('active');
+      map.locate({ setView: true, maxZoom: 15 });
+    });
+    this._btn = btn;
+    return btn;
+  }
+});
+new LocateControl().addTo(map);
+let locMarker, locCircle;
+map.on('locationfound', e => {
+  const r = e.accuracy / 2;
+  if (locMarker) { locMarker.setLatLng(e.latlng); locCircle.setLatLng(e.latlng).setRadius(r); }
+  else {
+    locMarker = L.marker(e.latlng, {
+      icon: L.divIcon({ className:'', html:'<div style="width:14px;height:14px;border-radius:50%;background:#007aff;border:2.5px solid #fff;box-shadow:0 0 6px rgba(0,122,255,.5)"></div><div class="loc-pulse" style="position:absolute;top:0;left:0"></div>', iconSize:[14,14], iconAnchor:[7,7] }),
+      zIndexOffset: 2000
+    }).addTo(map);
+    locCircle = L.circle(e.latlng, { radius: r, color: '#007aff', fillColor: '#007aff', fillOpacity: .08, weight: 1 }).addTo(map);
+  }
+});
+map.on('locationerror', () => {});
+
+function icon(color, emoji) {
+  return L.divIcon({ className: '', html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.18)">${emoji||''}</div>`, iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-16] });
+}
+
+if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b>`);
+
+let markers = [], polylines = [];
+const emojis = { food:'🍽️', spot:'📍', hotel:'🏨', transport:'🚃', drink:'🍺' };
+
+function clearMap() { markers.forEach(m=>map.removeLayer(m)); polylines.forEach(p=>map.removeLayer(p)); markers=[]; polylines=[]; }
+
+function showDay(idx) {
+  clearMap();
+  if (idx === 0) {
+    const pts = [];
+    DAYS.forEach(d => d.locations.forEach(l => { if(l.lat) pts.push([l.lat,l.lng]); }));
+    if(pts.length) map.fitBounds(pts, {padding:[30,30]});
+    DAYS.slice(1).forEach(d => {
+      d.locations.filter(l=>l.time!=='—').forEach(l => {
+        const m = L.circleMarker([l.lat,l.lng], { radius:4, fillColor:d.color, color:'#fff', weight:1.5, fillOpacity:.9 }).addTo(map).bindPopup(`<b>${l.name}</b><br><span style="color:#86868b">${d.label}</span>`);
+        markers.push(m);
+      });
+    });
+    return;
+  }
+  const day = DAYS.find(d=>d.id===idx);
+  if(!day) return;
+  const coords = [];
+  day.locations.forEach(l => {
+    if(!l.lat) return;
+    const m = L.marker([l.lat,l.lng], { icon: icon(day.color, emojis[l.type]||'📌') }).addTo(map);
+    const gmapQ = l.gmap||encodeURIComponent(l.name+' Tokyo');
+    m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
+    markers.push(m);
+    if(l.time!=='—') coords.push([l.lat,l.lng]);
+  });
+  if(coords.length>1) { const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl); }
+  if(coords.length) map.fitBounds(coords, { padding:[40,40], maxZoom:14 });
+}
+
+// ══════════ RENDER ══════════
+function payChips(pay) {
+  if(!pay) return '';
+  let h = '<div class="pays">';
+  const m = { cash:'💴', card:'💳', suica:'Suica', paypay:'PayPay', alipay:'支付宝', wechat:'微信' };
+  for(const [k,label] of Object.entries(m)) {
+    if(pay[k]!==undefined) { const c = pay[k]===1?'ok':pay[k]===0.5?'idk':'no'; h += `<span class="pay ${c}">${label}</span>`; }
+  }
+  return h+'</div>';
+}
+
+// ── 运行环境检测：在第三方 App 的 WebView 里，自定义 scheme 基本会被拦截 ──
+const IN_APP_WEBVIEW = (() => {
+  const ua = (navigator.userAgent || '').toLowerCase();
+  return /micromessenger|xhs|xhsdiscover|discover\/|tiktok|aweme|weibo|qq\/|qqbrowser|alipayclient|dingtalk|lark|feishu|ucbrowser|baiduboxapp|toutiao|newsarticle/.test(ua);
+})();
+
+function xhsKeyword(loc) {
+  if(loc.xhsKeyword) return loc.xhsKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function xhsAppUrl(loc) { return `xhsdiscover://search/result?keyword=${encodeURIComponent(xhsKeyword(loc))}&target_search=notes&source=deeplink`; }
+function xhsWebUrl(loc) { return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(xhsKeyword(loc))}&source=web_explore_feed`; }
+
+function dpKeyword(loc) {
+  if(loc.dianpingKeyword) return loc.dianpingKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function dpAppUrl(loc) { return `dianping://searchshoplist?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+function dpWebUrl(loc) { return `https://m.dianping.com/searchshop?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+
+window._extLocs = {};
+DAYS.forEach(d => d.locations.forEach(l => { window._extLocs[`${d.id}::${l.name}`] = l; }));
+window._xhsLocs = window._extLocs;
+
+function openExt(key, kind) {
+  const loc = window._extLocs[key]; if(!loc) return false;
+  if (IN_APP_WEBVIEW) {
+    window.location.href = kind==='dp' ? dpWebUrl(loc) : xhsWebUrl(loc);
+  } else {
+    window.location.href = kind==='dp' ? dpAppUrl(loc) : xhsAppUrl(loc);
+  }
+  return false;
+}
+function openXhs(key) { return openExt(key, 'xhs'); }
+function openDp(key)  { return openExt(key, 'dp'); }
+
+function locCard(loc, dayIdx) {
+  const dot = loc.type==='food'?'food':loc.type==='spot'?'spot':loc.type==='drink'?'drink':loc.type==='hotel'?'hotel':'transport';
+  const bdg = loc.type==='food'?'<span class="badge food">餐</span>':loc.type==='spot'?'<span class="badge spot">景</span>':loc.type==='drink'?'<span class="badge drink">饮</span>':'';
+  const uid = `d${dayIdx}-${loc.name.replace(/\W/g,'')}`;
+  const locKey = `${dayIdx}::${loc.name}`;
+  const gmapQ = loc.gmap||encodeURIComponent(loc.name+' Tokyo');
+  let lnk = `<button class="btn nav" onclick="openAS('${loc.name.replace(/'/g,"\\'")}',${loc.lat},${loc.lng},'${gmapQ}')">📍 导航</button>`;
+  if(loc.xhs||loc.xhsKeyword) {
+    const xhsHref = IN_APP_WEBVIEW ? xhsWebUrl(loc) : xhsAppUrl(loc);
+    const xhsLabel = IN_APP_WEBVIEW ? '📕 小红书' : '📕 小红书 App';
+    lnk += `<a href="${xhsHref}" onclick="return openXhs('${locKey.replace(/'/g,"\\'")}')" class="btn xhs">${xhsLabel}</a>`;
+  }
+  const dpEnabled = loc.dianping !== false &&
+    (loc.dianping || loc.dianpingKeyword || loc.type==='food' || loc.type==='drink');
+  if(dpEnabled) {
+    const dpHref = IN_APP_WEBVIEW ? dpWebUrl(loc) : dpAppUrl(loc);
+    const dpLabel = IN_APP_WEBVIEW ? '🍜 大众点评' : '🍜 大众点评 App';
+    lnk += `<a href="${dpHref}" onclick="return openDp('${locKey.replace(/'/g,"\\'")}')" class="btn dp">${dpLabel}</a>`;
+  }
+  if(loc.reserve) lnk += `<a href="${loc.reserve}" target="_blank" class="btn rsv">📅 预约</a>`;
+  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" onclick="if(!event.target.closest('.btn,.links'))toggle('${uid}')"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
+}
+
+function renderDay(idx) {
+  const d = DAYS.find(x=>x.id===idx); if(!d) return '';
+  const main = d.locations.filter(l=>l.time!=='—');
+  const alt = d.locations.filter(l=>l.time==='—');
+  let h = `<div class="day-head"><h2>${d.title}</h2><p>${d.date}</p></div>`;
+  if (d.route) h += `<div class="route-bar">${d.route}</div>`;
+  if(main.length) { h += '<div class="section-head">行程</div><div class="timeline">'; main.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  if(alt.length) { h += '<div class="section-head">备选</div><div class="timeline">'; alt.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  return h;
+}
+
+// ══════════ NAV ══════════
+let cur = 0;
+const tabsEl = document.getElementById('tabs');
+const contentEl = document.getElementById('content');
+
+DAYS.forEach(d => {
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (d.id===0?' active':'');
+  btn.dataset.day = d.id;
+  btn.textContent = d.label;
+  tabsEl.appendChild(btn);
+});
+
+function go(idx) {
+  cur = idx;
+  tabsEl.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', +t.dataset.day===idx));
+  contentEl.innerHTML = idx===0 ? overviewContent() : renderDay(idx);
+  showDay(idx);
+  contentEl.scrollTo({top:0});
+  const tab = tabsEl.querySelector(`[data-day="${idx}"]`);
+  if(tab) tab.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+function toggle(id) { const el=document.getElementById(id); if(el) el.classList.toggle('closed'); }
+
+tabsEl.addEventListener('click', e => { const t=e.target.closest('.tab'); if(t) go(+t.dataset.day); });
+
+go(0);
+
+/* ── Action Sheet for Navigation ── */
+const asOverlay = document.createElement('div');
+asOverlay.className = 'as-overlay';
+asOverlay.innerHTML = `<div class="as-sheet">
+  <div class="as-group" id="as-opts"></div>
+  <div class="as-group"><button class="as-item as-cancel" onclick="closeAS()">取消</button></div>
+</div>`;
+document.body.appendChild(asOverlay);
+asOverlay.addEventListener('click', e => { if (e.target === asOverlay) closeAS(); });
+
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+function amapAppUrl(name, lat, lng) {
+  const scheme = IS_IOS ? 'iosamap' : 'androidamap';
+  return `${scheme}://viewMap?sourceApplication=trip&poiname=${encodeURIComponent(name)}&lat=${lat}&lon=${lng}&dev=0`;
+}
+function amapWebUrl(name, lat, lng) {
+  return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&src=trip&coordinate=wgs84&callnative=1`;
+}
+function openAmap(name, lat, lng) {
+  if (IN_APP_WEBVIEW) { window.open(amapWebUrl(name, lat, lng)); return; }
+  window.location.href = amapAppUrl(name, lat, lng);
+}
+
+function openAS(name, lat, lng, gmap) {
+  const q = gmap || encodeURIComponent(name + ' Tokyo');
+  const encName = encodeURIComponent(name);
+  const safeName = name.replace(/'/g,"\\'");
+  // WebView 内 maps:// 通常被拦截，改用 https Apple Maps URL —— iOS 系统会自动拉起 Apple Maps
+  const appleUrl = IN_APP_WEBVIEW
+    ? `https://maps.apple.com/?q=${lat},${lng}&ll=${lat},${lng}&name=${encName}`
+    : `maps://maps.apple.com/?q=${lat},${lng}&name=${encName}`;
+  const googleUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+  document.getElementById('as-opts').innerHTML =
+    `<button class="as-item" onclick="window.open('${appleUrl}');closeAS()">🍎 Apple Maps</button>` +
+    `<button class="as-item" onclick="window.open('${googleUrl}');closeAS()">🗺️ Google Maps</button>` +
+    `<button class="as-item" onclick="openAmap('${safeName}',${lat},${lng});closeAS()">🧭 高德地图 App</button>`;
+  asOverlay.classList.add('show');
+}
+function closeAS() { asOverlay.classList.remove('show'); }
+</script>
+</body>
+</html>
