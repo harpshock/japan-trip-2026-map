@@ -132,6 +132,10 @@ a:hover { text-decoration: underline; }
 /* ── Card ── */
 .card { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); transition: box-shadow .25s ease; cursor: pointer; }
 .card:active { box-shadow: var(--shadow-md); }
+.card.active { box-shadow: 0 0 0 2px var(--accent), var(--shadow-md); }
+@keyframes pin-pop { 0% { transform: scale(1); } 35% { transform: scale(1.5); } 100% { transform: scale(1); } }
+.pin-active > div { box-shadow: 0 0 0 5px rgba(0,122,255,.35), 0 3px 12px rgba(0,0,0,.28) !important; animation: pin-pop .45s ease; }
+
 .card .time { font-size: 12px; font-weight: 600; color: var(--text-tertiary); letter-spacing: .01em; }
 .card .name { font-size: 17px; font-weight: 600; margin: 2px 0 4px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
 .card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.45; }
@@ -1649,9 +1653,12 @@ function icon(color, emoji) {
 if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b>`);
 
 let markers = [], polylines = [];
+const markerByUid = {};
+let activeUid = null;
+DAYS.forEach(d => d.locations.forEach((l,i) => { l._uid = `d${d.id}-${i}`; }));
 const emojis = { food:'🍽️', spot:'📍', hotel:'🏨', transport:'🚃', drink:'🍺' };
 
-function clearMap() { markers.forEach(m=>map.removeLayer(m)); polylines.forEach(p=>map.removeLayer(p)); markers=[]; polylines=[]; }
+function clearMap() { markers.forEach(m=>map.removeLayer(m)); polylines.forEach(p=>map.removeLayer(p)); markers=[]; polylines=[]; activeUid=null; for(const k in markerByUid) delete markerByUid[k]; }
 
 function showDay(idx) {
   clearMap();
@@ -1673,6 +1680,8 @@ function showDay(idx) {
   day.locations.forEach(l => {
     if(!l.lat) return;
     const m = L.marker([l.lat,l.lng], { icon: icon(day.color, emojis[l.type]||'📌') }).addTo(map);
+    m.locUid = l._uid;
+    markerByUid[l._uid] = m;
     const gmapQ = l.gmap||encodeURIComponent(l.name+' Tokyo');
     m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
     markers.push(m);
@@ -1680,6 +1689,26 @@ function showDay(idx) {
   });
   if(coords.length>1) { const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl); }
   if(coords.length) map.fitBounds(coords, { padding:[40,40], maxZoom:14 });
+}
+
+function focusLoc(uid, lat, lng) {
+  document.querySelectorAll('.card.active').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.pin-active').forEach(e => e.classList.remove('pin-active'));
+  if(activeUid && activeUid !== uid && markerByUid[activeUid]) markerByUid[activeUid].setZIndexOffset(0);
+  const card = document.getElementById('card-' + uid);
+  if(card) card.classList.add('active');
+  const m = markerByUid[uid];
+  const target = L.latLng(lat, lng);
+  activeUid = uid;
+  if(m) {
+    m.setZIndexOffset(1200);
+    const el = m.getElement();
+    if(el) el.classList.add('pin-active');
+    map.flyTo(target, Math.max(map.getZoom() || 15, 15), { duration: .6 });
+    window.setTimeout(() => { if(activeUid === uid) m.openPopup(); }, 620);
+  } else {
+    map.flyTo(target, 15, { duration: .6 });
+  }
 }
 
 // ══════════ RENDER ══════════
@@ -1732,7 +1761,7 @@ function openDp(key)  { return openExt(key, 'dp'); }
 function locCard(loc, dayIdx) {
   const dot = loc.type==='food'?'food':loc.type==='spot'?'spot':loc.type==='drink'?'drink':loc.type==='hotel'?'hotel':'transport';
   const bdg = loc.type==='food'?'<span class="badge food">餐</span>':loc.type==='spot'?'<span class="badge spot">景</span>':loc.type==='drink'?'<span class="badge drink">饮</span>':'';
-  const uid = `d${dayIdx}-${loc.name.replace(/\W/g,'')}`;
+  const uid = loc._uid;
   const locKey = `${dayIdx}::${loc.name}`;
   const gmapQ = loc.gmap||encodeURIComponent(loc.name+' Tokyo');
   let lnk = `<button class="btn nav" onclick="openAS('${loc.name.replace(/'/g,"\\'")}',${loc.lat},${loc.lng},'${gmapQ}')">📍 导航</button>`;
@@ -1749,7 +1778,7 @@ function locCard(loc, dayIdx) {
     lnk += `<a href="${dpHref}" onclick="return openDp('${locKey.replace(/'/g,"\\'")}')" class="btn dp">${dpLabel}</a>`;
   }
   if(loc.reserve) lnk += `<a href="${loc.reserve}" target="_blank" class="btn rsv">📅 预约</a>`;
-  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" onclick="if(!event.target.closest('.btn,.links'))toggle('${uid}')"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
+  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" id="card-${uid}" onclick="if(!event.target.closest('.btn,.links')){toggle('${uid}');focusLoc('${uid}',${loc.lat},${loc.lng})}"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
 }
 
 function renderDay(idx) {
