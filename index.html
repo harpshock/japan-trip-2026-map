@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>日本 2026 秋 · 行程地图</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="2026-09-25 至 10-06 日本行程互动地图：大阪・神户・奈良・京都・富山・立山黑部・姬路・高野山">
+<meta name="description" content="2026-09-25 至 10-06 日本行程互动地图：大阪・神户・奈良・京都・富山・立山黑部・金泽・姬路・高野山">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.css" />
@@ -145,6 +145,7 @@ a:hover { text-decoration: underline; }
 .badge.food   { background: rgba(255,59,48,.1);  color: var(--tint-red); }
 .badge.spot   { background: rgba(0,122,255,.1);  color: var(--tint-blue); }
 .badge.drink  { background: rgba(175,82,222,.1); color: var(--tint-purple); }
+.badge.hard  { background: rgba(255,59,48,.14); color: var(--tint-red); border: 1px solid rgba(255,59,48,.35); }
 
 /* Budget */
 .budget { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--bg-grouped); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); font-weight: 500; }
@@ -1243,96 +1244,202 @@ const DAYS = [
     "id": 8,
     "label": "10/3",
     "date": "2026-10-03 周六",
-    "title": "富山 → 大阪新今宫",
-    "color": "#8e8e93",
-    "route": "恢复日，不加硬景点。富山 → 敦贺（北陆新干线）→ 大阪（Thunderbird）→ 新今宫（大阪环状线）\n16:00–20:00 才考虑轻松去难波/道顿堀；累透了就只在新今宫附近吃饭。",
+    "title": "金泽半日 → 大阪新今宫",
+    "color": "#ff3b30",
+    "route": "当前位置：金泽城公园 → 兼六园 → 铃木大拙馆（可删）→ 21世纪美术馆 → 东茶屋街 → 近江町市场/金沢エムザ晚饭 → 金沢エムザ 1F 取行李 → 金泽站 → 敦贺 → 大阪 → JR 新今宫\n硬节点：18:20–18:35 到金沢エムザ 1F 取行李（Door 0101），18:35–18:40 出发去金泽站，目标 18:54 班次；若来不及，最晚 19:00 从 MZA 出发，目标 19:23。19:23 是最后一班实用常规铁路；之后通常只剩约 22:47 的夜行高速巴士。\n删减顺序：先删铃木大拙馆，再删近江町市场；只压缩21世纪美术馆。16:50 后无论看到哪里，都停止加点，向 MZA 收拢。",
     "locations": [
       {
-        "name": "Hotel LiveMax Toyama 退房",
-        "lat": 36.6974,
-        "lng": 137.2148,
-        "type": "hotel",
-        "time": "10:00 前",
-        "desc": "退房前再确认一次没有东西落下。",
-        "gmap": "Hotel Livemax Toyama",
+        "name": "金泽城公园（当前起点）",
+        "lat": 36.56705,
+        "lng": 136.65838,
+        "type": "spot",
+        "time": "11:30–12:10",
+        "desc": "从当前所在位置开始。只看石川门、五十间长屋和玉泉院丸庭园，控制在约40分钟。",
+        "gmap": "Kanazawa Castle Park",
+        "pay": {
+          "cash": 0.5,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "detail": "如果 12:10 还没离开，立刻压缩下一站，不要用赶路换掉取行李缓冲。\n今天已是周六，兼六园和21世纪美术馆客流会比工作日高。",
+        "xhsKeyword": "金泽城公园"
+      },
+      {
+        "name": "兼六园",
+        "lat": 36.56243,
+        "lng": 136.66235,
+        "type": "spot",
+        "time": "12:20–13:15",
+        "desc": "从金泽城步行接兼六园。先看徽轸灯笼、霞池和唐崎松，不要绕完整大圈。",
+        "gmap": "Kenrokuen Garden",
+        "pay": {
+          "cash": 0.5,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "入园费约 ¥320",
+        "detail": "金泽城与兼六园之间有连接通道/出口，按现场开放的入口走。\n只保留 45–55 分钟；若排队过长，先拍核心景观再离开。",
+        "xhsKeyword": "兼六园"
+      },
+      {
+        "name": "铃木大拙馆（可选）",
+        "lat": 36.55772,
+        "lng": 136.66137,
+        "type": "spot",
+        "time": "13:30–14:10（若去）",
+        "desc": "只在 16:30 前到，最终入馆 16:30；对禅意、建筑和安静空间不感兴趣就直接跳过。",
+        "gmap": "D.T. Suzuki Museum Kanazawa",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0
+        },
+        "budget": "成人 ¥310",
+        "detail": "开放 9:30–17:00，最终入馆 16:30。\n30–40 分钟足够。今天时间紧时，这是第一个删除项。",
+        "xhsKeyword": "铃木大拙馆"
+      },
+      {
+        "name": "金泽21世纪美术馆",
+        "lat": 36.56084,
+        "lng": 136.65821,
+        "type": "spot",
+        "time": "14:15–15:30",
+        "desc": "看常设展和建筑本身；周六人多，别把这里拖到傍晚。",
+        "gmap": "21st Century Museum of Contemporary Art Kanazawa",
         "pay": {
           "cash": 0.5,
           "card": 1,
           "suica": 0.5
-        }
+        },
+        "budget": "展览票约 ¥1,200–1,500",
+        "detail": "若时间落后，只逛免费公共区和建筑外观，把室内展览压缩到 30–40 分钟。\n最终开放和停止入馆时间以当天官网为准。",
+        "xhsKeyword": "金泽21世纪美术馆"
       },
       {
-        "name": "富山站",
-        "lat": 36.701,
-        "lng": 137.213,
+        "name": "东茶屋街",
+        "lat": 36.57256,
+        "lng": 136.66668,
+        "type": "spot",
+        "time": "15:45–17:15",
+        "desc": "主街＋宇多须神社＋浅野川侧巷；店铺多在 17:00–18:00 关门，先逛再买。",
+        "gmap": "Higashi Chaya District Kanazawa",
+        "pay": {
+          "cash": 0.5,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "detail": "17:15 必须开始往近江町/MZA 方向移动。\n若前面已经延误，茶屋街压缩到 45 分钟，也不要晚于 17:30 离开。",
+        "xhsKeyword": "东茶屋街"
+      },
+      {
+        "name": "近江町市场 / 金沢エムザ周边晚饭",
+        "lat": 36.5715,
+        "lng": 136.657,
+        "type": "food",
+        "time": "17:30–18:30",
+        "desc": "不绕去市场深处，直接在 MZA/近江町周边吃早晚饭；排队超过15分钟就换店。",
+        "gmap": "Omi-cho Market Kanazawa",
+        "pay": {
+          "cash": 1,
+          "card": 0.5,
+          "suica": 0.5
+        },
+        "budget": "¥1,500–3,000/人",
+        "detail": "目的只是垫肚子和收尾，不是完整逛市场。\n18:30 前结束，给取行李留缓冲。",
+        "xhsKeyword": "近江町市场"
+      },
+      {
+        "name": "金沢エムザ 1F manaca locker（取行李）",
+        "lat": 36.57149,
+        "lng": 136.65514,
         "type": "transport",
-        "time": "约 10:30",
-        "desc": "北陆新干线 → 敦贺。",
-        "gmap": "Toyama Station",
+        "time": "18:20–18:35（主目标）",
+        "desc": "硬节点。到 1F（Door 0101）取行李；先向服务台确认取件截止时间，取到后不要逛店。",
+        "gmap": "Kanazawa MZA",
+        "pay": {
+          "cash": 1,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "票面：KANAZAWA MZA / manaca locker / Door 0101 / 2026-10-03 11:14 / ¥400。\n金沢エムザ地址：石川県金沢市武蔵町15-1，不在金泽站。建筑1F–3F官方营业时间为10:00–19:30，但储物柜区域的实际截止时间可能更早。\n18:20–18:35取到是赶18:54的目标；19:00是赶19:23的绝对离店线。现在就打 076-260-2055 或问现场服务台确认。",
+        "hard": true
+      },
+      {
+        "name": "金泽站",
+        "lat": 36.57808,
+        "lng": 136.64859,
+        "type": "transport",
+        "time": "18:45 前 / 19:10 前",
+        "desc": "硬节点。18:45前到站赶18:54；19:10前进站冲19:23。MZA打车约5分钟，步行约10分钟。",
+        "gmap": "Kanazawa Station",
         "pay": {
           "cash": 0.5,
           "card": 1,
           "suica": 1
-        }
+        },
+        "detail": "18:54 かがやき511 → 敦贺19:37；20:11 サンダーバード46 → 大阪21:34；21:38 环状线 → 新今宫21:52（大阪换乘仅3分钟，错过就坐下一班）。\n19:23 IR→福井→敦贺→22:05 サンダーバード50 → 大阪23:29 → 新今宫23:53（最后一班实用常规铁路）。\n再晚通常只有约22:47的夜行高速巴士；以当天JR官方时刻、余票为准。",
+        "hard": true
       },
       {
-        "name": "敦贺站",
+        "name": "敦贺站（换乘）",
         "lat": 35.645,
         "lng": 136.0755,
         "type": "transport",
-        "time": "约 11:45",
-        "desc": "换乘 Thunderbird 前往大阪。",
+        "time": "19:37–20:11（18:54班）",
+        "desc": "北陆新干线到敦贺后同站换特急去大阪；先确认サンダーバード站台，不要出站。",
         "gmap": "Tsuruga Station Fukui",
         "pay": {
           "cash": 0.5,
           "card": 1,
           "suica": 1
-        }
+        },
+        "detail": "18:54班：19:37到、20:11发车，预留34分钟。\n若改乘19:23从金泽出发，则在敦贺约22:05接サンダーバード50。"
       },
       {
-        "name": "大阪站",
+        "name": "大阪站（换乘）",
         "lat": 34.7015,
         "lng": 135.4944,
         "type": "transport",
-        "time": "约 13:40",
-        "desc": "大阪环状线 → 新今宫。",
+        "time": "21:34–21:38（18:54班）",
+        "desc": "サンダーバード46 21:34到；3分钟换大阪环状线，时间很紧，下车即跟“大阪环状线 新今宫方向”走。",
         "gmap": "Osaka Station",
         "pay": {
           "cash": 0.5,
           "card": 1,
           "suica": 1
-        }
+        },
+        "detail": "如果没赶上21:38环状线，直接坐下一班，不要为了3分钟在站内奔跑。"
+      },
+      {
+        "name": "JR 新今宫站",
+        "lat": 34.6498,
+        "lng": 135.5022,
+        "type": "transport",
+        "time": "21:52 / 23:53",
+        "desc": "18:54班约21:52到；19:23班约23:53到。出站后步行约1分钟到酒店。",
+        "gmap": "Shin-Imamiya Station Osaka",
+        "pay": {
+          "cash": 0.5,
+          "card": 1,
+          "suica": 1
+        },
+        "detail": "明天去高野山走南海新今宫，今天晚上先认一下南海检票口方向。"
       },
       {
         "name": "CHISUN STANDARD 大阪新今宫",
         "lat": 34.6497,
         "lng": 135.5015,
         "type": "hotel",
-        "time": "约 14:10",
-        "desc": "10/3–10/6 住 3 晚。先寄存行李、吃饭和休息。",
+        "time": "约22:05 / 次日00:05",
+        "desc": "10/3–10/6 住3晚。到达后入住休息，不要再加道顿堀。",
         "gmap": "Chisun Standard Osaka Shin Imamiya",
         "pay": {
           "cash": 0.5,
           "card": 1,
           "suica": 0.5
         },
-        "detail": "大阪市西成区萩之茶屋 1-2-13，步行到南海新今宫约 1–3 分钟。\n注意：南海新今宫 ≠ JR 新今宫，两个站在不同位置，10/5 晚上先踩点南海检票口。",
+        "detail": "地址：大阪府大阪市西成区花園北1-2-23。\nJR/NANKAI 新今宫西口步行约1分钟；南海新今宫 ≠ JR 新今宫。\n19:23末班常规铁路到新今宫23:53，约00:05到酒店，先确认酒店最晚入住时间。",
         "xhsKeyword": "大阪新今宫 住宿"
-      },
-      {
-        "name": "道顿堀・难波（可选）",
-        "lat": 34.669,
-        "lng": 135.5016,
-        "type": "spot",
-        "time": "16:00",
-        "desc": "只有体力还行才去；不去也完全符合计划。",
-        "gmap": "Dotonbori Osaka",
-        "pay": {
-          "cash": 0.5,
-          "card": 1,
-          "suica": 0.5
-        },
-        "xhsKeyword": "道顿堀"
       }
     ]
   },
@@ -1663,7 +1770,7 @@ const DAYS = [
 
 function overviewContent() {
   return `
-<div class="hero"><h1>日本 2026 秋</h1><p class="subtitle">9/25 – 10/6 · 大阪・神户・奈良・京都・富山・立山黑部・姬路・高野山</p></div>
+<div class="hero"><h1>日本 2026 秋</h1><p class="subtitle">9/25 – 10/6 · 大阪・神户・奈良・京都・富山・立山黑部・金泽・姬路・高野山</p></div>
 <div class="info-grid">
   <div class="info-card"><div class="label">出发 / 返回</div><div class="value">香港 HKG T2<br>10/6 19:00 抵港</div></div>
   <div class="info-card"><div class="label">航线</div><div class="value">去程 香港 → 福冈 → 关西<br>回程 关西 → 福冈 → 香港</div></div>
@@ -1671,17 +1778,20 @@ function overviewContent() {
   <div class="info-card"><div class="label">交通主力</div><div class="value">IC 卡（Suica / ICOCA）<br>+ JR 长途票</div></div>
 </div>
 
-<div class="section-head">四个硬节点</div>
+<div class="section-head">五个硬节点</div>
 <div class="pay-summary"><h4>1. 9/30 13:02 トロッコ嵯峨发车</h4>08:10 酒店出发，08:19 JR 梅小路京都西 → 08:35 嵯峨岚山；12:20 前必须进 トロッコ嵯峨站。若错过 08:19，改乘 08:30 → 08:46，并立即删除龟山公园。</div>
 <div class="pay-summary"><h4>2. 立山黑部两张票的取消节点</h4>10/1 早割：<span class="warn">9/21 23:59 后取消每人 1,000 日元</span>。<br>10/2 Standard：<span class="warn">10/1 15:00 前免费取消</span>，之后每人 500 日元。<br>两张同时保留，就是为了给 10/1–10/2 的天气决策留余地。以账户页面显示的截止时间为最终依据。</div>
-<div class="pay-summary"><h4>3. 10/6 KIX T2 10:10 起飞</h4>04:55 出发，05:17 空港急行，05:58 到 KIX，目标 07:10 前到值机区。</div>
-<div class="pay-summary"><h4>4. 立山厚衣服必须在 9/30 晚间到手</h4>9/26 或 9/27 上午从大阪寄到 Hotel LiveMax Toyama，指定送达 9/29–9/30。9/30 到店第一件事就是确认取件。</div>
+<div class="pay-summary"><h4>3. 10/3 金泽取行李与返程</h4>18:20–18:35 到 <strong>金沢エムザ 1F</strong> 取行李（Door 0101），然后立即去金泽站。18:45前到站赶18:54→21:52；19:10前到站赶19:23→23:53。19:23为最后一班实用常规铁路，再晚只有约22:47夜行巴士。<br><span class="warn">现在就向 1F 服务台或 076-260-2055 确认储物柜/取件截止时间。</span></div>
+<div class="pay-summary"><h4>4. 10/6 KIX T2 10:10 起飞</h4>04:55 出发，05:17 空港急行，05:58 到 KIX，目标 07:10 前到值机区。</div>
+<div class="pay-summary"><h4>5. 立山厚衣服必须在 9/30 晚间到手</h4>9/26 或 9/27 上午从大阪寄到 Hotel LiveMax Toyama，指定送达 9/29–9/30。9/30 到店第一件事就是确认取件。</div>
 
 <div class="section-head">9/30 晚间后备班次</div>
 <div class="pay-summary">优先：京都 <strong>17:37</strong> → 敦贺 18:30，接 <strong>19:09</strong> → 富山 <strong>20:17</strong>。<br>
 后备：京都 17:08 → 敦贺 18:09 → 富山 19:15；京都 18:07 → 敦贺 19:09 → 富山 20:17；京都 18:38 → 敦贺 19:39 → 富山 21:01；京都 19:10 / 19:38 → 敦贺 20:43 → 富山 22:05；京都 20:38 → 敦贺 21:42 → 富山 23:04；最晚同日 京都 <strong>21:21</strong> → 敦贺 22:28 → 富山 <strong>23:50</strong>。<br>
 <span class="warn">雷鸟全车指定席</span>，错过需改签并确认余座。</div>
 
+<div class="section-head">10/3 金泽返程班次</div>
+<div class="pay-summary"><strong>18:54 → 新今宫 21:52</strong>（最佳：かがやき511→敦贺；20:11サンダーバード46→大阪；21:38环状线）；<strong>19:23 → 新今宫 23:53</strong>（3次换乘，最后一班实用常规铁路）。之后通常只剩 <strong>22:47 前后夜行高速巴士</strong>（约06:37到大阪一带）。<br><span class="warn">18:54 后并非没车；但若19:10前到不了金泽站，按19:23规划。以金泽站JR官方时刻、余票和敦贺换乘为准。</span></div>
 <div class="section-head">行李寄送（立山厚衣服）</div>
 <div class="pay-summary">寄件时间：<strong>9/26 周六早上或晚上</strong>优先，最晚 9/27 周日上午。<br>寄件地点：难波附近 Yamato 营业所、便利店或 APA 前台。<br>收件人：Hotel LiveMax Toyama + 订房姓名，备注入住日期 2026-09-30。<br>寄送内容：保暖内层、抓绒或轻薄羽绒、防风防水外层、手套、帽子、厚袜子。<br><span class="warn">护照、现金、银行卡、药品、电脑、相机、充电器、电池、移动电源一律随身，不要寄。</span><br>寄送前确认：APA 是否能代办宅急便 / LiveMax 是否接受未入住前到件 / 运费与追踪方式。只寄一个箱子，寄送单拍照留存。</div>
 
@@ -1691,7 +1801,7 @@ function overviewContent() {
 <div class="pay-summary"><h4>取现</h4>7-11 和日本邮政的 ATM 对境外卡最友好。备少量现金应对只收现金的老店。</div>
 
 <div class="section-head">周游券复核</div>
-<div class="pay-summary">暂不默认购买 Kansai-Hokuriku Area Pass（约 19,000 日元/人）。<br>在购买 9/30 京都→富山、10/3 富山→大阪两段长途票时，再按实际价格和通票做一次最终核算。<br>JR 长途票优先比较北陆・关西チケットレス早特7与普通票，但<span class="warn">不要为了折扣牺牲 9/30 小火车后的换乘缓冲</span>。</div>
+<div class="pay-summary">暂不默认购买 Kansai-Hokuriku Area Pass（约 19,000 日元/人）。<br>在购买 9/30 京都→富山、10/3 金泽→大阪两段长途票时，再按实际价格和通票做一次最终核算。<br>JR 长途票优先比较北陆・关西チケットレス早特7与普通票，但<span class="warn">不要为了折扣牺牲 9/30 小火车后的换乘缓冲</span>。</div>
 
 <div class="section-head">行程概览</div>
 <div class="day-list">${DAYS.slice(1).map(d=>`<div class="card" onclick="go(${d.id})"><div class="name"><span class="dot" style="background:${d.color}"></span>${d.label} · ${d.title}</div><div class="desc">${d.date}</div></div>`).join('')}</div>
@@ -1783,11 +1893,11 @@ function showDay(idx) {
   const coords = [];
   day.locations.forEach(l => {
     if(!l.lat) return;
-    const m = L.marker([l.lat,l.lng], { icon: icon(day.color, emojis[l.type]||'📌') }).addTo(map);
+    const m = L.marker([l.lat,l.lng], { icon: icon(l.hard?'#ff3b30':day.color, l.hard?'⏰':(emojis[l.type]||'📌')) }).addTo(map);
     m.locUid = l._uid;
     markerByUid[l._uid] = m;
     const gmapQ = l.gmap||encodeURIComponent(l.name+' Tokyo');
-    m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
+    m.bindPopup(`<b>${l.name}</b>${l.hard?' <span style="color:#ff3b30;font-weight:700">硬节点</span>':''}${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
     markers.push(m);
     if(l.time!=='—') coords.push([l.lat,l.lng]);
   });
@@ -1865,6 +1975,7 @@ function openDp(key)  { return openExt(key, 'dp'); }
 function locCard(loc, dayIdx) {
   const dot = loc.type==='food'?'food':loc.type==='spot'?'spot':loc.type==='drink'?'drink':loc.type==='hotel'?'hotel':'transport';
   const bdg = loc.type==='food'?'<span class="badge food">餐</span>':loc.type==='spot'?'<span class="badge spot">景</span>':loc.type==='drink'?'<span class="badge drink">饮</span>':'';
+  const hardBdg = loc.hard ? '<span class="badge hard">硬节点</span>' : '';
   const uid = loc._uid;
   const locKey = `${dayIdx}::${loc.name}`;
   const gmapQ = loc.gmap||encodeURIComponent(loc.name+' Tokyo');
@@ -1882,7 +1993,7 @@ function locCard(loc, dayIdx) {
     lnk += `<a href="${dpHref}" onclick="return openDp('${locKey.replace(/'/g,"\\'")}')" class="btn dp">${dpLabel}</a>`;
   }
   if(loc.reserve) lnk += `<a href="${loc.reserve}" target="_blank" class="btn rsv">📅 预约</a>`;
-  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" id="card-${uid}" onclick="if(!event.target.closest('.btn,.links')){toggle('${uid}');focusLoc('${uid}',${loc.lat},${loc.lng})}"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
+  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" id="card-${uid}" onclick="if(!event.target.closest('.btn,.links')){toggle('${uid}');focusLoc('${uid}',${loc.lat},${loc.lng})}"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg}${hardBdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
 }
 
 function renderDay(idx) {
